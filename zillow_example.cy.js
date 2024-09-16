@@ -1,0 +1,70 @@
+context('Needed for Base State', () => {
+  beforeEach(() => {
+    cy.visit("https://www.zillow.com/mortgage-calculator/")
+  })
+
+  describe('My first test on Cypress', () => {
+    it('base state', () => {
+      // check the base state (defaults)
+      cy.title().should('eq', 'Mortgage Calculator - Free House Payment Estimate | Zillow')
+      cy.get('input[name="homePrice"]').should('be.visible').should('be.enabled').should('have.value', '300,000')
+      cy.get('input[name="downPayment"]').should('be.visible').should('be.enabled').should('have.value', '60,000')
+      cy.get('input[name="downPaymentPercent"]').should('be.visible').should('be.enabled').should('have.value', '20')
+      cy.get('select[name="term"]').should('be.visible').should('be.enabled').should('have.value', 'Fixed30Year')
+      cy.get('input[name="rate"]').should('be.visible').should('be.enabled')
+      cy.get('button[class="StyledTextButton-c11n-8-64-1__sc-n1gfmh-0 gryLKd"]').should('be.visible').should('be.enabled').should('have.text', 'AdvancedChevron Down')
+      cy.get('input[name="includePMI"]').should('not.be.visible').should('be.checked')
+      cy.get('input[name="includeTaxesInsurance"]').should('not.be.visible').should('be.checked')
+      cy.get('input[name="propertyTaxRateAnnualAmount"]').should('not.be.visible').should('be.enabled')
+      cy.get('input[name="propertyTaxRate"]').should('not.be.visible').should('be.enabled')
+      cy.get('input[name="annualHomeownersInsurance"]').should('not.be.visible').should('be.enabled').should('have.value', '1,260')
+      cy.get('input[name="monthlyHOA"]').should('not.be.visible').should('be.enabled').should('have.value', '0')
+    })
+    it('Change interest rate to 6% and Principal and Interest payment', () => {
+      cy.get('input[name="rate"]').clear()
+      cy.get('input[name="rate"]').type('6.000')
+      // workaround like exiting the field
+      cy.get('input[name="homePrice"]').should('be.visible').should('be.enabled').should('have.value', '300,000')
+      cy.get('input[name="homePrice"]').click()
+      cy.get('input[name="rate"]').should('be.visible').should('be.enabled').should('have.value', '6.000')
+      cy.get('text[class="arc-label-value"]').should('be.visible').should('contain.text', '$1,439')
+    })
+    it('Negative test: Change home price to 100 and validate error message', () => {
+      cy.get('input[name="homePrice"]').clear()
+      cy.get('input[name="homePrice"]').type('100')
+      // workaround like exiting the field
+      cy.get('input[name="downPayment"]').should('be.visible').should('be.enabled').should('have.value', '60,000')
+      cy.get('input[name="downPayment"]').click()
+      cy.get('input[name="homePrice"]').should('be.visible').should('be.enabled').should('have.value', '100')
+      cy.get('p').should('be.visible').should('contain.text', 'Home price must be greater than or equal to 5,00')
+    })
+    it('Change interest rate to 6%, 15-year and validate Principal and Interest payment', () => {
+      cy.get('input[name="rate"]').clear()
+      cy.get('input[name="rate"]').type('6.000')
+      cy.get('select[name="term"]').should('be.visible').should('be.enabled')
+      cy.get('select[name="term"]').select('Fixed15Year')
+      // workaround like exiting the field
+      cy.get('input[name="homePrice"]').should('be.visible').should('be.enabled').should('have.value', '300,000')
+      cy.get('input[name="homePrice"]').click()
+      cy.get('select[name="term"]').should('be.visible').should('be.enabled').should('have.value', 'Fixed15Year')
+      cy.get('text[class="arc-label-value"]').should('be.visible').should('contain.text', '$2,025')
+    })
+    it('Calculate P&I and PMI for 3.5%, 30-year fixed, $67k down against $370k', () => {
+      cy.get('input[name="rate"]').clear()
+      cy.get('input[name="rate"]').type('3.500')
+      // workaround like exiting the field
+      cy.get('input[name="homePrice"]').should('be.visible').should('be.enabled').should('have.value', '300,000')
+      cy.get('input[name="homePrice"]').click()
+      cy.get('input[name="homePrice"]').clear()
+      cy.get('input[name="homePrice"]').type("370,000")
+      cy.get('input[name="downPayment"]').clear()
+      cy.get('input[name="downPayment"]').type("67,000")
+      cy.get('input[name="homePrice"]').click()
+      cy.get('input[name="homePrice"]').should('be.visible').should('be.enabled').should('have.value', '370,000')
+      cy.get('input[name="downPayment"]').should('be.visible').should('be.enabled').should('have.value', '67,000')
+      cy.get('input[name="rate"]').should('be.visible').should('be.enabled').should('have.value', '3.500')
+      cy.get('text[class="arc-label-value"]').should('be.visible').should('contain.text', '$1,361')
+      cy.get('text[class="arc-label-value"]').should('be.visible').should('contain.text', '$111')
+    })
+  })
+})
